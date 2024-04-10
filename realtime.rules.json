@@ -1,0 +1,20 @@
+{
+    "rules": {
+      ".read": true,
+      "parties": {
+        "$campaignId": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'admin'",
+          "$partyId": {
+            ".validate": "newData.exists() && !data.exists()"
+          }
+        }
+      },
+      "results": {
+        "$campaignId": {
+          ".write": "auth != null && auth.token.firebase.sign_in_provider === 'admin'",
+          ".validate": "newData.exists() && !data.exists()"
+        }
+      }
+    }
+  }
+  

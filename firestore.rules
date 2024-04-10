@@ -1,0 +1,13 @@
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Matches documents in the 'votes' collection.
+    match /votes/{voteId} {
+      // Allows document creation by any authenticated user.
+      allow create: if request.auth != null && request.auth.uid != null;
+      // Prevents updates or deletions, even by the creator.
+      allow update, delete: if false;
+      // Optionally, restrict reading votes or allow it based on your requirements.
+      allow read: if true; // or specific conditions as per your app's logic
+    }
+  }
+}
