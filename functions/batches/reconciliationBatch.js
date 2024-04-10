@@ -11,10 +11,16 @@ async function recalculateElectionData() {
 
   // Fetch all votes from Firestore
   const votesSnapshot = await firestore.collection('votes').get();
-
+  /*const resultsRef = admin.database().ref(`results/${campaignId}`);
+  // Update total vote count
+  await resultsRef.child('participantsCount').transaction((current) => {
+    return (current || 0) + 1;
+  });
+  */
   // Structures to hold recalculated data
   let partyVoteCounts = {}; // For each campaign and party
   let electionResults = {}; // For each campaign
+  let participantsCount = {}; // For each campaign
 
   votesSnapshot.docs.forEach((doc) => {
     const vote = doc.data();
@@ -23,8 +29,9 @@ async function recalculateElectionData() {
     if (!partyVoteCounts[campaignId]) {
       partyVoteCounts[campaignId] = {};
       electionResults[campaignId] = { voteCount: 0, classicVoteCount: 0 };
+      participantsCount[campaignId] = 0;
     }
-
+    participantsCount[campaignId] += 1;
     Object.entries(vote.parties).forEach(([partyId, partyVote]) => {
       const { count } = partyVote;
 
@@ -78,7 +85,11 @@ async function recalculateElectionData() {
   )) {
     await realtimeDb
       .ref(`results/${campaignId}`)
-      .update({ voteCount, classicVoteCount });
+      .update({
+        voteCount,
+        classicVoteCount,
+        participantsCount: participantsCount[campaignId],
+      });
   }
 }
 

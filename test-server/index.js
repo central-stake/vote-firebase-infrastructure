@@ -70,6 +70,8 @@ const typeDefs = gql`
     id: String!
     voteCount: Int
     classicVoteCount: Int
+    classicSeatCount: Int
+    seatCount: Int
     result: Float
     classicResult: Float
   }
@@ -77,6 +79,7 @@ const typeDefs = gql`
   type Results {
     totalVotes: Int
     totalClassicVotes: Int
+    participantsCount: Int
   }
 `;
 
@@ -157,6 +160,7 @@ const resolvers = {
       return {
         totalVotes: resultsData.voteCount,
         totalClassicVotes: resultsData.classicVoteCount,
+        participantsCount: resultsData.participantsCount,
         // Assurez-vous que ces champs correspondent à ceux définis dans votre schéma GraphQL
       };
     },
@@ -172,7 +176,6 @@ const resolvers = {
 
       const partiesData = snapshot1.val();
       const resultsData = snapshot2.val();
-      console.log(JSON.stringify(partiesData));
       const parties = Object.keys(partiesData).map((key) => ({
         id: key,
         ...partiesData[key],

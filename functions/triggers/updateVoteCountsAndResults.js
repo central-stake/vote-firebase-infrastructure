@@ -46,6 +46,9 @@ async function updateResult(
   // Update overall election results
   const resultsRef = admin.database().ref(`results/${campaignId}`);
   // Update total vote count
+  await resultsRef.child('participantsCount').transaction((current) => {
+    return (current || 0) + 1;
+  });
   await resultsRef.child('voteCount').transaction((current) => {
     return (current || 0) + totalVotesIncrement;
   });
