@@ -70,6 +70,8 @@ const typeDefs = gql`
     id: String!
     voteCount: Int
     classicVoteCount: Int
+    result: Float
+    classicResult: Float
   }
 
   type Results {
@@ -160,16 +162,22 @@ const resolvers = {
     },
     getParties: async (_, { campaignId }) => {
       const partiesRef = realTimeDb.ref(`parties/${campaignId}`);
-      const snapshot = await partiesRef.once("value");
+      const snapshot1 = await partiesRef.once("value");
+      const resultsRef = realTimeDb.ref(`results/${campaignId}`);
+      const snapshot2 = await resultsRef.once("value");
 
-      if (!snapshot.exists()) {
+      if (!snapshot1.exists() || !snapshot2.exists()) {
         return [];
       }
 
-      const partiesData = snapshot.val();
+      const partiesData = snapshot1.val();
+      const resultsData = snapshot2.val();
+      console.log(JSON.stringify(partiesData));
       const parties = Object.keys(partiesData).map((key) => ({
         id: key,
         ...partiesData[key],
+        result: partiesData[key].voteCount/resultsData.voteCount,
+        classicResult: partiesData[key].classicVoteCount/resultsData.classicVoteCount,
       }));
 
       return parties;
