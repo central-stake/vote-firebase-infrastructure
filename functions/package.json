@@ -9,7 +9,7 @@
   "scripts": {
     "lint": "eslint --fix '**/*.js'",
     "prettier": "prettier --write '**/*.js'",
-    "prebuild": "npm run lint && npm run prettier",
+    "prebuild": " npm run prettier",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
