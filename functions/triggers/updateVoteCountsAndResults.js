@@ -38,6 +38,10 @@ exports.updateVoteCountsAndResults = functions
             return (current || 0) + 1;
           });
           totalClassicVotesIncrement += 1;
+        } else {
+          await partyRef.child('classicVoteCount').transaction((current) => {
+            return current || 0;
+          });
         }
 
         // Increment total votes for overall election metrics
