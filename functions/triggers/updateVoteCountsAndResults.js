@@ -8,6 +8,21 @@ if (admin.apps.length === 0) {
 async function updateParties(campaignId, voteData) {
   let totalVotesIncrement = 0;
   let totalClassicVotesIncrement = 0;
+  // duplicate
+  console.log(`vote ${JSON.stringify(voteData)}`);
+  const partiesArray = Object.entries(voteData.parties)
+    .filter(([key]) => key !== 'id')
+    .map(([key, value]) => ({
+      id: key,
+      ...value,
+    }));
+
+  // Find the entry with the maximum count
+  const maxCountParty = partiesArray.reduce((prev, current) =>
+    prev.count > current.count ? prev : current
+  );
+
+  console.log(`maxCountParty ${JSON.stringify(maxCountParty)}`);
   await Promise.all(
     Object.keys(voteData.parties).map(async (partyId) => {
       const { count } = voteData.parties[partyId];
@@ -17,8 +32,8 @@ async function updateParties(campaignId, voteData) {
         return (current || 0) + count;
       });
 
-      // Update classic vote count (assuming positive counts contribute to classic votes)
-      if (count > 0) {
+      // Update classic vote count (assuming positive counts contribute to classic votes) - take bigger
+      if (count > 0 && maxCountParty.id == partyId) {
         await partyRef.child('classicVoteCount').transaction((current) => {
           return (current || 0) + 1;
         });

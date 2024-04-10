@@ -32,6 +32,22 @@ async function recalculateElectionData() {
       participantsCount[campaignId] = 0;
     }
     participantsCount[campaignId] += 1;
+    console.log(`votes ${JSON.stringify(vote)}`);
+
+    // duplicate
+    const partiesArray = Object.entries(vote.parties)
+      .filter(([key]) => key !== 'id')
+      .map(([key, value]) => ({
+        id: key,
+        ...value,
+      }));
+
+    // Find the entry with the maximum count
+    const maxCountParty = partiesArray.reduce((prev, current) =>
+      prev.count > current.count ? prev : current
+    );
+
+    console.log(`maxCountParty ${JSON.stringify(maxCountParty)}`);
     Object.entries(vote.parties).forEach(([partyId, partyVote]) => {
       const { count } = partyVote;
 
@@ -40,42 +56,31 @@ async function recalculateElectionData() {
         partyVoteCounts[campaignId][partyId] = {
           voteCount: 0,
           classicVoteCount: 0,
-          result: 0,
-          classicResult: 0,
         };
       }
 
       // Update party vote counts
       partyVoteCounts[campaignId][partyId].voteCount += Math.abs(count);
-      if (count > 0) {
-        electionResults[campaignId].classicVoteCoun += 1;
+      if (count > 0 && maxCountParty.id == partyId) {
+        partyVoteCounts[campaignId][partyId].classicVoteCount += 1;
       }
 
       // Update election results
       electionResults[campaignId].voteCount += Math.abs(count);
-      partyVoteCounts[campaignId][partyId].result = (
-        electionResults[campaignId].voteCount /
-        electionResults[campaignId].voteCount
-      ).toFixed(2);
-      if (count > 0) {
+      if (count > 0 && maxCountParty.id == partyId) {
         electionResults[campaignId].classicVoteCount += 1;
-        partyVoteCounts[campaignId][partyId].classicResult = (
-          electionResults[campaignId].classicVoteCount /
-          electionResults[campaignId].classicVoteCount
-        ).toFixed(2);
       }
     });
   });
 
   // Update the Realtime Database with recalculated data
   for (const [campaignId, parties] of Object.entries(partyVoteCounts)) {
-    for (const [
-      partyId,
-      { voteCount, classicVoteCount, result, classicResult },
-    ] of Object.entries(parties)) {
+    for (const [partyId, { voteCount, classicVoteCount }] of Object.entries(
+      parties
+    )) {
       await realtimeDb
         .ref(`parties/${campaignId}/${partyId}`)
-        .update({ voteCount, classicVoteCount, result, classicResult });
+        .update({ voteCount, classicVoteCount });
     }
   }
 
@@ -83,13 +88,11 @@ async function recalculateElectionData() {
   for (const [campaignId, { voteCount, classicVoteCount }] of Object.entries(
     electionResults
   )) {
-    await realtimeDb
-      .ref(`results/${campaignId}`)
-      .update({
-        voteCount,
-        classicVoteCount,
-        participantsCount: participantsCount[campaignId],
-      });
+    await realtimeDb.ref(`results/${campaignId}`).update({
+      voteCount,
+      classicVoteCount,
+      participantsCount: participantsCount[campaignId],
+    });
   }
 }
 
